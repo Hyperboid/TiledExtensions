@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@mapeditor/tiled-api": "^1.11.0"
+  }
+}
