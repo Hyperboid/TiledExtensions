@@ -1,2 +1,5 @@
 node_modules
 .vscode
+
+# Extensions that aren't mine
+extern_*
