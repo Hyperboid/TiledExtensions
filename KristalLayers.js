@@ -22,9 +22,16 @@ let action = tiled.registerAction("CreateKristalLayers", function(action) {
     if (!asset || !asset.isTileMap) {
         tiled.alert("Not a tile map!"); return;
     }
-    // @ts-ignore
-    addKristalLayersTo(asset)
+    const map = /** @type {TileMap} */ (asset)
+
+    addKristalLayersTo(map)
     
+})
+
+tiled.assetCreated.connect(function(asset) {
+    if (!asset.isTileMap) return
+    const map = /** @type {TileMap} */ (asset)
+    if (map.tileHeight == 40 && map.tileWidth == 40) addKristalLayersTo(map)
 })
 
 action.shortcut = "Ctrl+K"
