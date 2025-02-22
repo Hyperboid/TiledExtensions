@@ -17,7 +17,7 @@ let action = tiled.registerAction("CreateKristalLayers", function(action) {
     }
     tryAddLayer("collision", "#0000FF")
     tryAddLayer("objects", "#FF00FF")
-    tryAddLayer("controllers")
+    tryAddLayer("controllers", "#00C000")
     tryAddLayer("markers", "#7F00FF")
     tryAddLayer("battleareas", "#00FF00")
 })
