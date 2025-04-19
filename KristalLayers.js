@@ -9,9 +9,12 @@ function addKristalLayersTo(/** @type {TileMap} */map) {
         let layer = new ObjectGroup(name)
         if (color) layer.color = tiled.color(color)
         map.addLayer(layer)
+        return layer
     }
+    tryAddLayer("objects_bg")
+    tryAddLayer("objects_party", "#FF00FF")
+    tryAddLayer("objects_fg")
     tryAddLayer("collision", "#0000FF")
-    tryAddLayer("objects", "#FF00FF")
     tryAddLayer("controllers", "#00C000")
     tryAddLayer("markers", "#7F00FF")
     tryAddLayer("battleareas", "#00FF00")
