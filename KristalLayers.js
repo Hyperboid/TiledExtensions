@@ -13,6 +13,7 @@ function addKristalLayersTo(/** @type {TileMap} */map) {
     }
     tryAddLayer("objects_bg")
     tryAddLayer("objects_party", "#FF00FF")
+    tryAddLayer("paths", "#FF0000")
     tryAddLayer("objects_fg")
     tryAddLayer("collision", "#0000FF")
     tryAddLayer("controllers", "#00C000")
@@ -30,29 +31,16 @@ let action = tiled.registerAction("CreateKristalLayers", function(action) {
     addKristalLayersTo(map)
     
 })
-let auto_create = tiled.registerAction("AutoCreateKristalLayers", function(action) {
-    // TODO: Save this preference
-})
 
 tiled.assetCreated.connect(function(asset) {
-    if (!auto_create.checked) return
     if (!asset.isTileMap) return
     const map = /** @type {TileMap} */ (asset)
-    addKristalLayersTo(map)
+    if (map.tileHeight == 40 && map.tileWidth == 40) addKristalLayersTo(map)
 })
 
 action.shortcut = "Ctrl+K"
 action.text = "Create Kristal layers"
 
-auto_create.text = "Automatically Create Kristal layers"
-auto_create.iconVisibleInMenu = false
-auto_create.checkable = true
-auto_create.checked = false
-
 tiled.extendMenu("Map", [
     {action: "CreateKristalLayers", before: "MapProperties"}
-])
-
-tiled.extendMenu("Edit", [
-    {action: "AutoCreateKristalLayers", before: "Preferences"}
 ])
