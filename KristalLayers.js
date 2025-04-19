@@ -10,8 +10,8 @@ function addKristalLayersTo(/** @type {TileMap} */map) {
         if (color) layer.color = tiled.color(color)
         map.addLayer(layer)
     }
-    tryAddLayer("paths", "#FF0000")
     tryAddLayer("collision", "#0000FF")
+    tryAddLayer("paths", "#FF0000")
     tryAddLayer("objects", "#FF00FF")
     tryAddLayer("controllers", "#00C000")
     tryAddLayer("markers", "#7F00FF")
