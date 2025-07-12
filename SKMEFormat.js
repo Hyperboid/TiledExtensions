@@ -1,4 +1,122 @@
 // @ts-check
+
+var lon = {
+    /**
+     * @param {string[]} chars 
+     * @returns {[Object|Array, string[]]|void}
+     */
+    evaltable(chars) {
+        let object = {}
+        let array = []
+        let use_array = true
+
+        while (chars[0] && (chars[0] === " " || chars[0] === "\n")) {
+            chars.shift()
+        }
+        if (chars[0] == "}") {
+            chars.shift()
+            return [{}, chars]
+        }
+        while (chars[0]) {
+            while (chars[0] && (chars[0] === " " || chars[0] === "\n")) {
+                chars.shift()
+            }
+            let key
+            if (chars[0] == "[") {
+                chars.shift()
+                let [newkey, newchars] = lon.evalsubstr(chars)
+                chars = newchars || chars
+                key = newkey || key
+                chars.shift()
+            } else {
+                key = ""
+                while (chars[0].match(/^\w+$/)) {
+                    key = key + chars.shift()
+                }
+            }
+            while (chars[0] && (chars[0] === " " || chars[0] === "\n")) {
+                chars.shift()
+            }
+            if (chars.shift() !== "=") {
+                throw new Error("Key " + key + ", Expected \"=\" before " + chars.join(""));
+            }
+            let [value, newchars] = lon.evalsubstr(chars)
+            chars = newchars || chars
+            object[key] = value
+            array[key - 1] = value
+            if (typeof key != "number" ) {
+                use_array = false
+            }
+            while (chars[0] && (chars[0] === " " || chars[0] === "\n")) {
+                chars.shift()
+            }
+            if (chars[0] == ",") {
+                chars.shift()
+                // throw new Error("Expected \",\" before " + chars.join(""));
+            }
+            
+            while (chars[0] && (chars[0] === " " || chars[0] === "\n")) {
+                chars.shift()
+            }
+
+            if (chars[0] == "}") {
+                break
+            }
+        }
+        chars.shift()
+        return [use_array ? array : object, chars]
+    },
+    /**
+     * @param {string[]} chars 
+     * @returns {[any, string[]]}
+     */
+    evalsubstr(chars) {
+        while (chars[0] && (chars[0] === " " || chars[0] === "\n")) {
+            chars.shift()
+        }
+        let firstchar = chars.shift()
+        let value
+        if (!firstchar) {
+            console.error("im confus");
+        } else if (firstchar === "{") {
+            [value, chars] = lon.evaltable([...chars])
+        } else if (firstchar === "t") {
+            chars.shift()
+            chars.shift()
+            chars.shift()
+            value = true
+        } else if (firstchar === "f") {
+            chars.shift()
+            chars.shift()
+            chars.shift()
+            chars.shift()
+            value = false
+        } else if (!isNaN(Number(firstchar)) || firstchar == "-") {
+            let numstr = firstchar
+            while (chars[0] && !isNaN(Number(chars[0]))) {
+                if (chars[0] === "\\") {
+                    chars.shift()
+                }
+                numstr = numstr + chars.shift()
+            }
+            value = Number(numstr)
+        } else if (firstchar === "\"") {
+            value = ""
+            while (chars[0] && chars[0] !== "\"") {
+                if (chars[0] === "\\") {
+                    chars.shift()
+                }
+                value = value + chars.shift()
+            }
+            chars.shift()
+        }
+        return [value, chars]
+    },
+    deserialize(str) {
+        return this.evalsubstr(str.split(""))[0]
+    },
+}
+
 var SKME = {
     Utils: {
         startsWith(value, prefix){
@@ -11,6 +129,7 @@ var SKME = {
             name: "Stupid Kristal Map Editor",
             outputFiles: SKME.outputFiles,
             write: SKME.write,
+            read: SKME.read,
         })
     },
     /**
@@ -20,11 +139,30 @@ var SKME = {
      */
     write(map, fileName) {
         let file = new TextFile(fileName, TextFile.WriteOnly)
-        console.log(file.filePath)
         // @ts-ignore because it doesn't see it as optional
         file.write("return " + SKME.object_to_luastring(SKME.saveMap(map)))
         file.commit()
         return
+    },
+
+    /**
+     * @returns {TileMap}
+     * @param {string} fileName 
+     */
+    read(fileName) {
+        let file = new TextFile(fileName)
+        let map = SKME.loadMap(lon.deserialize(file.readAll().substring(7)))
+        file.close()
+        return map
+    },
+
+    loadMap(data) {
+        let map = new TileMap()
+        map.tileHeight = 40
+        map.tileWidth = 40
+        map.width = data.width
+        map.height = data.height
+        return map
     },
 
     /**
@@ -139,13 +277,7 @@ var SKME = {
         return data
     },
 
-    /**
-     * @param {string} buf 
-     * @returns {Object}
-     */
-    luastring_to_object(buf) { },
     dumpKey(key) {
-        console.log(key, typeof key)
         if (typeof(key) == 'object') {
             return '('+key+')'
         } else if (typeof (key) == "number") {
@@ -197,3 +329,18 @@ var SKME = {
 }
 
 SKME.init()
+tiled.log("\n\n\n\n".repeat(10))
+
+tiled.log("res: " + JSON.stringify(lon.deserialize(`{
+    ["some_key"] = 1,
+    dictionary = {
+        wowie = "zowie",
+    }
+    somearray = {
+        [1] = 1,
+        [2] = 2,
+    },
+    empty = {},
+    morestuff = true,
+    evilnumber = -4,
+}`)))
