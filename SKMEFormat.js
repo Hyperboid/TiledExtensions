@@ -153,6 +153,9 @@ var SKME = {
      * @param {string} fileName 
      */
     read(fileName) {
+        let splitpath = tiled.projectFilePath.split("/")
+        splitpath.pop()
+        SKME.projectDirectory = splitpath.join("/")
         let file = new TextFile(fileName)
         let map = SKME.loadMap(lon.deserialize(file.readAll().substring(7)))
         file.close()
@@ -166,6 +169,9 @@ var SKME = {
         map.width = data.width
         map.height = data.height
         map.setProperties(data.properties)
+        if (data.party_layer) {
+            map.setProperty("party_layer", data.party_layer)
+        }
         for (let index = 0; index < data.tilesets.length; index++) {
             const tsdata = data.tilesets[index];
             let tileset = tiled.open(SKME.projectDirectory + "/scripts/world/tilesets/" + tsdata.id + ".tsx")
@@ -235,6 +241,10 @@ var SKME = {
         let data = {}
         data.format = "skme"
         data.properties = map.resolvedProperties()
+        if (data.properties.party_layer) {
+            data.party_layer = map.layers.indexOf(map.layerAt(data.properties.party_layer))
+            data.properties.party_layer = undefined
+        }
         /** @type {Object[]} */
         data.layers = []
         data.width = map.width
@@ -376,7 +386,9 @@ var SKME = {
                 if (!isNaN(Number(k))) {
                     k = Number(k)
                 }
-                s = s + ("    ").repeat(indent) + SKME.dumpKey(k) + ' = ' + SKME.object_to_luastring(v, indent + 1) + ',\n'
+                if (v != null && v != undefined) {
+                    s = s + ("    ").repeat(indent) + SKME.dumpKey(k) + ' = ' + SKME.object_to_luastring(v, indent + 1) + ',\n'
+                }
             })
             if (keys.length > 0) {
                 s = s + ("    ").repeat(indent-1)
