@@ -217,7 +217,6 @@ var SKME = {
                     obj.width = odata.width || obj.width
                     obj.height = odata.height || obj.height
                     obj.tile = SKME.loadTile(map, odata.gid)
-                    odata.properties.gid = odata.gid
                     obj.shape = ({
                         point: MapObject.Point,
                         rectangle: MapObject.Rectangle,
@@ -225,6 +224,9 @@ var SKME = {
                         polyline: MapObject.Polyline,
                     })[data.shape] || ((obj.width == 0 && obj.height == 0) ? MapObject.Point : MapObject.Rectangle)
                     obj.setProperties(odata.properties)
+                    if (odata.id) {
+                        obj.setProperty("persistent_id", odata.id)
+                    }
                     // obj.x = data.x
                     layer.addObject(obj)
                 }
@@ -285,12 +287,13 @@ var SKME = {
     },
 
     /**
-     * @param {TileMap} map
-     * @param {Tile} tile
+     * @param {TileMap?} map
+     * @param {Tile?} tile
      * @returns {number}
      */
     saveTile(map, tile) {
         if (!tile) { return 0 }
+        if (!map) { return tile && tile.id }
         let firstgid = 1
         for (let index = 0; index < map.tilesets.length; index++) {
             const tileset = map.tilesets[index];
@@ -363,17 +366,20 @@ var SKME = {
                 } else if (object.shape == MapObject.Point) {
                     shapename = "point"
                 }
-                objects.push({
+                let props = object.resolvedProperties()
+                let odata = {
                     x: object.x,
                     y: object.y,
                     width: object.width,
                     height: object.height,
-                    properties: object.resolvedProperties(),
+                    properties: props,
                     type: (object.name == "" ? object.className : object.name),
-                    id: object.id,
+                    id: Math.round(props.persistent_id || object.id),
                     shape: shapename,
                     gid: SKME.saveTile(input_layer.map, object.tile),
-                })
+                }
+                odata.properties.persistent_id = undefined
+                objects.push(odata)
             }
             let className = layer.className == "" ? layer.name : layer.className
             if (className.startsWith("objects") || className.startsWith("objectgroup") || className.startsWith("controllers")) {
