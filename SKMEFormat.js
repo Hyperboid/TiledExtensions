@@ -392,10 +392,12 @@ var SKME = {
                 } else if (className.startsWith("markers")) {
                     data.type = "markers"
                 } else {
-                    throw new Error("Invalid layer type: "+className)
+                    throw new Error("Invalid shape layer type: "+className)
                 }
                 data.shapes = objects
             }
+        } else {
+            throw new Error("Can't handle " + (input_layer.isGroupLayer ? "group" : "image") + " layers. Only" );
         }
         return data
     },
