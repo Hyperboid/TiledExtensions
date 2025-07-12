@@ -309,6 +309,14 @@ var SKME = {
      */
     loadTile(map, id) {
         if (!id) { return null }
+        let firstgid = 1
+        for (let index = 0; index < map.tilesets.length; index++) {
+            const tileset = map.tilesets[index];
+            if (id >= firstgid && id < firstgid + tileset.tileCount) {
+                return tileset.findTile(id - firstgid + 1)
+            }
+            firstgid += tileset.tileCount
+        }
         return map.tilesets[0] && map.tilesets[0].findTile(id)
     },
 
