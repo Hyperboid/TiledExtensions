@@ -232,6 +232,7 @@ var SKME = {
                 }
                 map.addLayer(layer)
             }
+            layer.visible = ldata.visible != false
             
         }
         return map
