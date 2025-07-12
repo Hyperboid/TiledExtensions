@@ -124,6 +124,9 @@ var SKME = {
         }
     },
     init() {
+        let splitpath = tiled.projectFilePath.split("/")
+        splitpath.pop()
+        SKME.projectDirectory = splitpath.join("/")
         tiled.registerMapFormat("skme", {
             extension: "lua",
             name: "Stupid Kristal Map Editor",
@@ -162,6 +165,62 @@ var SKME = {
         map.tileWidth = 40
         map.width = data.width
         map.height = data.height
+        map.setProperties(data.properties)
+        for (let index = 0; index < data.tilesets.length; index++) {
+            const tsdata = data.tilesets[index];
+            let tileset = tiled.open(SKME.projectDirectory + "/scripts/world/tilesets/" + tsdata.id + ".tsx")
+            map.addTileset(tileset)
+            tiled.close(tileset) // TODO: Don't close if it was open before (somehow?)
+        }
+        for (let index = 0; index < data.layers.length; index++) {
+            const ldata = data.layers[index];
+            let layer
+            if (ldata.type == "tilelayer") {
+                layer = new TileLayer(ldata.name)
+                map.addLayer(layer)
+                layer.setProperties(ldata.properties)
+                let edit = layer.edit()
+                for (let index = 0; index < ldata.data.length; index++) {
+                    const gid = ldata.data[index];
+                    edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), map.tilesets[0].tiles[gid - 1])
+                }
+                edit.apply()
+            } else {
+                layer = new ObjectGroup(ldata.name)
+                layer.className = ldata.type || ldata.name
+                const tryColorLayer = function (/** @type {string} */ name, /** @type {string} */ color) {
+                    if (layer.className.startsWith(name)) {
+                        layer.color = tiled.color(color)
+                    }
+                }
+                tryColorLayer("collision", "#0000FF")
+                tryColorLayer("paths", "#FF0000")
+                tryColorLayer("objectgroup", "#FF00FF")
+                tryColorLayer("controllers", "#00C000")
+                tryColorLayer("markers", "#7F00FF")
+                tryColorLayer("battleareas", "#00FF00")
+                let objdatas = ldata.shapes || ldata.objects
+                for (let index = 0; index < objdatas.length; index++) {
+                    const odata = objdatas[index];
+                    let obj = new MapObject(odata.name || odata.type)
+                    obj.x = odata.x || obj.x
+                    obj.y = odata.y || obj.y
+                    obj.width = odata.width || obj.width
+                    obj.height = odata.height || obj.height
+                    obj.shape = ({
+                        point: MapObject.Point,
+                        rectangle: MapObject.Rectangle,
+                        polygon: MapObject.Polygon,
+                        polyline: MapObject.Polyline,
+                    })[data.shape] || ((obj.width == 0 && obj.height == 0) ? MapObject.Point : MapObject.Rectangle)
+                    obj.setProperties(odata.properties)
+                    // obj.x = data.x
+                    layer.addObject(obj)
+                }
+                map.addLayer(layer)
+            }
+            
+        }
         return map
     },
 
@@ -193,7 +252,8 @@ var SKME = {
         }
         data.tilesets[0] = {
             firstgid: 1,
-            id: "castle",
+            // TODO: ID detection without relying on this
+            id: map.tilesets[0].name,
         }
         return data
     },
@@ -260,16 +320,17 @@ var SKME = {
                     shape: shapename
                 })
             }
-            if (layer.name.startsWith("objects") || layer.name.startsWith("controllers")) {
-                data.type = layer.name.startsWith("controllers") ? "controllers" : "objectgroup"
+            let className = layer.className == "" ? layer.name : layer.className
+            if (className.startsWith("objects") || className.startsWith("objectgroup") || className.startsWith("controllers")) {
+                data.type = className.startsWith("controllers") ? "controllers" : "objectgroup"
                 data.objects = objects
             } else {
-                if (layer.name.startsWith("collision")) {
+                if (className.startsWith("collision")) {
                     data.type = "collision"
-                } else if (layer.name.startsWith("markers")) {
+                } else if (className.startsWith("markers")) {
                     data.type = "markers"
                 } else {
-                    throw new Error("Invalid layer type: "+layer.name)
+                    throw new Error("Invalid layer type: "+className)
                 }
                 data.shapes = objects
             }
