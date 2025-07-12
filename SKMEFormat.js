@@ -91,9 +91,9 @@ var lon = {
             chars.shift()
             chars.shift()
             value = false
-        } else if (!isNaN(Number(firstchar)) || firstchar == "-") {
+        } else if (!isNaN(Number(firstchar)) || firstchar == "-" || firstchar[0] == ".") {
             let numstr = firstchar
-            while (chars[0] && !isNaN(Number(chars[0]))) {
+            while (chars[0] && (!isNaN(Number(chars[0])) || chars[0] == ".")) {
                 if (chars[0] === "\\") {
                     chars.shift()
                 }
@@ -179,6 +179,8 @@ var SKME = {
                 layer = new TileLayer(ldata.name)
                 map.addLayer(layer)
                 layer.setProperties(ldata.properties)
+                layer.parallaxFactor.x = ldata.parallaxx
+                layer.parallaxFactor.y = ldata.parallaxy
                 let edit = layer.edit()
                 for (let index = 0; index < ldata.data.length; index++) {
                     const gid = ldata.data[index];
@@ -202,6 +204,7 @@ var SKME = {
                 let objdatas = ldata.shapes || ldata.objects
                 for (let index = 0; index < objdatas.length; index++) {
                     const odata = objdatas[index];
+                    if (!odata) { continue }
                     let obj = new MapObject(odata.name || odata.type)
                     obj.x = odata.x || obj.x
                     obj.y = odata.y || obj.y
