@@ -242,7 +242,7 @@ var SKME = {
         data.format = "skme"
         data.properties = map.resolvedProperties()
         if (data.properties.party_layer) {
-            data.party_layer = map.layers.indexOf(map.layerAt(data.properties.party_layer))
+            data.party_layer = data.properties.party_layer
             data.properties.party_layer = undefined
         }
         /** @type {Object[]} */
@@ -405,6 +405,9 @@ var SKME = {
 }
 
 SKME.init()
+
+// For testing deserialization:
+/*
 tiled.log("\n\n\n\n".repeat(10))
 
 tiled.log("res: " + JSON.stringify(lon.deserialize(`{
@@ -420,3 +423,4 @@ tiled.log("res: " + JSON.stringify(lon.deserialize(`{
     morestuff = true,
     evilnumber = -4,
 }`)))
+*/
