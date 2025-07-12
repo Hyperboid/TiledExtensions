@@ -190,7 +190,7 @@ var SKME = {
                 let edit = layer.edit()
                 for (let index = 0; index < ldata.data.length; index++) {
                     const gid = ldata.data[index];
-                    edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), map.tilesets[0].tiles[gid - 1])
+                    edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), map.tilesets[0] && map.tilesets[0].tiles[gid - 1])
                 }
                 edit.apply()
             } else {
@@ -260,13 +260,13 @@ var SKME = {
         for (let index = 0; index < map.tilesets.length; index++) {
             const tileset = map.tilesets[index];
             if (tileset.asset && tileset.asset.isTileMap) {
-                throw "sad"
+                throw new Error("Embedded tileset!??")
             }
-        }
-        data.tilesets[0] = {
-            firstgid: 1,
-            // TODO: ID detection without relying on this
-            id: map.tilesets[0].name,
+            data.tilesets[0] = {
+                firstgid: 1,
+                // TODO: ID detection without relying on this
+                id: map.tilesets[0].name,
+            }
         }
         return data
     },
