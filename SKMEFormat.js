@@ -265,11 +265,12 @@ var SKME = {
             if (tileset.asset && tileset.asset.isTileMap) {
                 throw new Error("Embedded tileset!??")
             }
-            data.tilesets[0] = {
-                firstgid: 1,
+            data.tilesets[index] = {
+                firstgid,
                 // TODO: ID detection without relying on this
-                id: map.tilesets[0].name,
+                id: tileset.name,
             }
+            firstgid += tileset.tileCount
         }
         return data
     },
@@ -280,10 +281,24 @@ var SKME = {
      * @returns {number}
      */
     getCellGid(cell, tile, map) {
-        return SKME.saveTile(map, tile) + 1
+        return SKME.saveTile(map, tile)
     },
 
+    /**
+     * @param {TileMap} map
+     * @param {Tile} tile
+     * @returns {number}
+     */
     saveTile(map, tile) {
+        if (!tile) { return 0 }
+        let firstgid = 1
+        for (let index = 0; index < map.tilesets.length; index++) {
+            const tileset = map.tilesets[index];
+            if (tile.tileset == tileset) {
+                return firstgid + tile.id
+            }
+            firstgid += tileset.tileCount
+        }
         return tile && tile.id
     },
 
