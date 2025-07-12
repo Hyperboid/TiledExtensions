@@ -364,7 +364,7 @@ var SKME = {
                 } else if (object.shape == MapObject.Polyline) {
                     shapename = "polyline"
                 } else if (object.shape == MapObject.Point) {
-                    shapename = "point"
+                    shapename = "rectangle"
                 }
                 let props = object.resolvedProperties()
                 let odata = {
@@ -376,7 +376,7 @@ var SKME = {
                     type: (object.name == "" ? object.className : object.name),
                     id: Math.round(props.persistent_id || object.id),
                     shape: shapename,
-                    gid: SKME.saveTile(input_layer.map, object.tile),
+                    gid: SKME.saveTile(input_layer.map, object.tile) || undefined,
                 }
                 odata.properties.persistent_id = undefined
                 objects.push(odata)
@@ -423,6 +423,9 @@ var SKME = {
             if (isNaN(Number(keys[1]))) {
                 keys.sort()
             }
+            keys = keys.filter(function (k) {
+                return o[k] != null && o[k] != undefined
+            })
             if (keys.length > 0) {
                 s = s + '\n'
             }
