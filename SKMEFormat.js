@@ -190,7 +190,7 @@ var SKME = {
                 let edit = layer.edit()
                 for (let index = 0; index < ldata.data.length; index++) {
                     const gid = ldata.data[index];
-                    edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), map.tilesets[0] && map.tilesets[0].tiles[gid - 1])
+                    edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), SKME.loadTile(map, gid - 1))
                 }
                 edit.apply()
             } else {
@@ -216,6 +216,8 @@ var SKME = {
                     obj.y = odata.y || obj.y
                     obj.width = odata.width || obj.width
                     obj.height = odata.height || obj.height
+                    obj.tile = SKME.loadTile(map, odata.gid)
+                    odata.properties.gid = odata.gid
                     obj.shape = ({
                         point: MapObject.Point,
                         rectangle: MapObject.Rectangle,
@@ -257,6 +259,7 @@ var SKME = {
         }
         /** @type {Object[]} */
         data.tilesets = []
+        let firstgid = 1
         for (let index = 0; index < map.tilesets.length; index++) {
             const tileset = map.tilesets[index];
             if (tileset.asset && tileset.asset.isTileMap) {
@@ -272,11 +275,26 @@ var SKME = {
     },
 
     /**
-     * @param {cell} cell 
+     * @param {cell} cell
+     * @param {TileMap} map
      * @returns {number}
      */
-    getCellGid(cell) {
-        return cell.tileId + 1
+    getCellGid(cell, tile, map) {
+        return SKME.saveTile(map, tile) + 1
+    },
+
+    saveTile(map, tile) {
+        return tile && tile.id
+    },
+
+    /**
+     * @param {TileMap} map 
+     * @param {number?} id 
+     * @returns {Tile?}
+     */
+    loadTile(map, id) {
+        if (!id) { return null }
+        return map.tilesets[0] && map.tilesets[0].findTile(id)
     },
 
 
@@ -302,7 +320,7 @@ var SKME = {
             for (let y = 0; y < layer.height; y++) {
                 for (let x = 0; x < layer.width; x++) {
                     let cell = layer.cellAt(x, y)
-                    data.data.push(SKME.getCellGid(cell))
+                    data.data.push(SKME.getCellGid(cell, layer.tileAt(x, y), input_layer.map))
                 }
             }
         } else if (input_layer.isObjectLayer) {
@@ -330,7 +348,8 @@ var SKME = {
                     properties: object.resolvedProperties(),
                     type: (object.name == "" ? object.className : object.name),
                     id: object.id,
-                    shape: shapename
+                    shape: shapename,
+                    gid: SKME.saveTile(input_layer.map, object.tile),
                 })
             }
             let className = layer.className == "" ? layer.name : layer.className
