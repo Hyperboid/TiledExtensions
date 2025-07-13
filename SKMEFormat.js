@@ -190,7 +190,7 @@ var SKME = {
                 let edit = layer.edit()
                 for (let index = 0; index < ldata.data.length; index++) {
                     const gid = ldata.data[index];
-                    edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), SKME.loadTile(map, gid - 1))
+                    edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), SKME.loadTile(map, gid))
                 }
                 edit.apply()
             } else {
@@ -317,7 +317,7 @@ var SKME = {
         for (let index = 0; index < map.tilesets.length; index++) {
             const tileset = map.tilesets[index];
             if (id >= firstgid && id < firstgid + tileset.tileCount) {
-                return tileset.findTile(id - firstgid + 1)
+                return tileset.findTile(id - firstgid)
             }
             firstgid += tileset.tileCount
         }
