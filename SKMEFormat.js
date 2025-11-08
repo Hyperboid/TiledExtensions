@@ -193,6 +193,13 @@ var SKME = {
                     edit.setTile(index % (ldata.width || map.width), Math.floor(index / (ldata.width || map.width)), SKME.loadTile(map, gid))
                 }
                 edit.apply()
+            } else if (ldata.type == "image") {
+                layer = new ImageLayer(ldata.name)
+                layer.offset.x = ldata.x
+                layer.offset.y = ldata.y
+                let image = new Image(ldata.image)
+                layer.setImage(image, ldata.image)
+                map.addLayer(layer)
             } else {
                 layer = new ObjectGroup(ldata.name)
                 layer.className = ldata.type || ldata.name
@@ -216,6 +223,7 @@ var SKME = {
                     obj.y = odata.y || obj.y
                     obj.width = odata.width || obj.width
                     obj.height = odata.height || obj.height
+                    obj.rotation = odata.rotation || obj.rotation
                     obj.tile = SKME.loadTile(map, odata.gid)
                     obj.shape = ({
                         point: MapObject.Point,
@@ -375,7 +383,7 @@ var SKME = {
                     height: object.height,
                     properties: props,
                     type: (object.name == "" ? object.className : object.name),
-                    id: Math.round(props.persistent_id || object.id),
+                    id: Math.round(object.id),
                     shape: shapename,
                     gid: SKME.saveTile(input_layer.map, object.tile) || undefined,
                 }
@@ -396,6 +404,14 @@ var SKME = {
                 }
                 data.shapes = objects
             }
+        } else if (input_layer.isImageLayer) {
+            /** @type {ImageLayer} */ //@ts-ignore
+            let layer = input_layer
+            data.type = "image"
+            data.image = layer.imageFileName
+            data.x = layer.offset.x
+            data.y = layer.offset.y
+
         } else {
             throw new Error("Can't handle " + (input_layer.isGroupLayer ? "group" : "image") + " layers. Only" );
         }
